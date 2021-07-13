@@ -22,6 +22,7 @@ from .uper_head import UPerHead
 
 
 from .segformer_head import SegFormerHead
+from .segformer_uhead import SegFormerUHead
 from .segformer_AttnHead import SegFormerAttnHead
 
 __all__ = [
@@ -29,5 +30,5 @@ __all__ = [
     'UPerHead', 'DepthwiseSeparableASPPHead', 'ANNHead', 'DAHead', 'OCRHead',
     'EncHead', 'DepthwiseSeparableFCNHead', 'FPNHead', 'EMAHead', 'DNLHead',
     'PointHead', 'APCHead', 'DMHead', 'LRASPPHead',
-    'SegFormerHead', 'SegFormerAttnHead'
+    'SegFormerHead', 'SegFormerAttnHead' , 'SegFormerUHead'
 ]
