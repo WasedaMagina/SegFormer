@@ -51,13 +51,13 @@ class SegFormerUHead(BaseDecodeHead):
         decoder_params = kwargs['decoder_params']
         embedding_dim = decoder_params['embed_dim']
 
-        self.linear_c4 = MLP(input_dim=c4_in_channels, embed_dim=embedding_dim*16)
+        self.linear_c4 = MLP(input_dim=c4_in_channels, embed_dim=embedding_dim*4)
         self.linear_c3 = MLP(input_dim=c3_in_channels, embed_dim=embedding_dim*4)
-        self.linear_c2 = MLP(input_dim=c2_in_channels, embed_dim=embedding_dim*2)
+        self.linear_c2 = MLP(input_dim=c2_in_channels, embed_dim=embedding_dim*4)
         self.linear_c1 = MLP(input_dim=c1_in_channels, embed_dim=embedding_dim)
 
         self.linear_fuse = ConvModule(
-            in_channels=embedding_dim*2,
+            in_channels=embedding_dim*4,
             out_channels=embedding_dim,
             kernel_size=1,
             norm_cfg=dict(type='BN', requires_grad=True)
@@ -81,20 +81,22 @@ class SegFormerUHead(BaseDecodeHead):
         #print('c4.shape:', c4.shape)
 
         _c4 = self.linear_c4(c4).permute(0,2,1).reshape(n, -1, c4.shape[2], c4.shape[3])
-        #_c4 = self.linear_c4(c4)
-        _c4 = rearrange(_c4, 'b (p1 p2 c) h w-> b c (h p1) (w p2)', p1=8, p2=8)
+        _c4 = rearrange(_c4, 'b (p1 p2 c) h w-> b c (h p1) (w p2)', p1=2, p2=2)
+        _c4 = resize(_c4, size=c1.size()[2:],mode='bilinear',align_corners=False)
         #print(_c4.shape)
         
         #_c4 = resize(_c4, size=c1.size()[2:],mode='bilinear',align_corners=False)
         #c3 = c3.permute(0,2,1).reshape(n, -1, c3.shape[2], c3.shape[3])
         #c3 = torch.cat([_c4,c3],dim=1)
         _c3 = self.linear_c3(c3).permute(0,2,1).reshape(n, -1, c3.shape[2], c3.shape[3])
-        _c3 = rearrange(_c3, 'b (p1 p2 c) h w-> b c (h p1) (w p2)', p1=4, p2=4)
+        _c3 = rearrange(_c3, 'b (p1 p2 c) h w-> b c (h p1) (w p2)', p1=2, p2=2)
+        _c3 = resize(_c3, size=c1.size()[2:],mode='bilinear',align_corners=False)
         #print(_c3.shape)
         #_c3 = resize(_c3, size=c1.size()[2:],mode='bilinear',align_corners=False)
         #c2 = torch.cat([_c3,c2],dim=1)
         _c2 = self.linear_c2(c2).permute(0,2,1).reshape(n, -1, c2.shape[2], c2.shape[3])
         _c2 = rearrange(_c2, 'b (p1 p2 c) h w-> b c (h p1) (w p2)', p1=2, p2=2)
+        #_c2 = resize(_c2, size=c1.size()[2:],mode='bilinear',align_corners=False)
         #print(_c2.shape)
         #_c2 = resize(_c2, size=c1.size()[2:],mode='bilinear',align_corners=False)
         #c1 = torch.cat([_c2,c1],dim=1)
